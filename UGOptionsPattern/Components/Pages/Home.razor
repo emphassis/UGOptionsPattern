@@ -1,0 +1,56 @@
+﻿@page "/"
+@inject UGOptionsPattern.Services.HomePageService homePageService
+@inject UGOptionsPattern.Services.DatabaseService databaseService
+
+<PageTitle>Home</PageTitle>
+
+<div class="container">
+    <div class="row text-center mt-3">
+        <h1 class="display-1">@_settings.PageTitle</h1>
+    </div>
+    @foreach (var row in _rows)
+    {
+        <div class="row">
+            @foreach (var column in _columns)
+            {
+                <div class="col">
+                    <div class="card m-3">
+                        <div class="card-header h3 @_settings.CardHeaderClass">@GetTitle()</div>
+                        <div class="card-body h5">@GetBody()</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private UGOptionsPattern.Settings.HomePageSettings _settings = default!;
+    private List<UGOptionsPattern.Settings.ContentSettings> _content = new();
+    private int[] _rows = default!;
+    private int[] _columns = default!;
+
+    protected override Task OnInitializedAsync()
+    {
+        _settings = homePageService.Get();
+        _rows = new int[_settings.Rows];
+        _columns = new int[_settings.Columns];
+        return base.OnInitializedAsync();
+    }
+
+    private string GetTitle()
+    {
+        if (_content.Count == 0)
+        {
+            _content = databaseService.GetContent();
+        }
+        return _content.First().Title;
+    }
+
+    private string GetBody()
+    {
+        var body = _content.First().Body;
+        _content = _content.Where(x => x != _content.First()).ToList();
+        return body;
+    }
+}
